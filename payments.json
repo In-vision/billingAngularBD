@@ -1,0 +1,15 @@
+[{
+    "id": 1,
+    "amount": 30000,
+    "provider": "javiertorres@gmail.com",
+    "status": "paid",
+    "transactionId": 513201910275,
+    "paymentForm": "Ending in 1111"
+}, {
+    "id": 3,
+    "amount": 23000,
+    "provider": "javiertorres@gmail.com",
+    "status": "paid",
+    "transactionId": 1557809906783,
+    "paymentForm": "Ending in 1231"
+}]
