@@ -249,6 +249,7 @@ function auth(req, res, next) {
             res.status(401).send({
                 error: "Unauthorized"
             });
+	    return;
         }
         next();
     });
