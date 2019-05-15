@@ -118,7 +118,7 @@ app.route('/payments/:id')
 app.route('/profile')
     .get(auth, (req, res) => {
         let user = req.get('x-user');
-        res.json(profile);
+        
         User.findOne({ 'email': user }, (err, docs) => {
             if (err) {
                 console.log(err);
