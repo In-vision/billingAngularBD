@@ -1,113 +1,132 @@
 'use strict'
+
 const express = require('express');
 const fs = require('fs');
 const bodyParser = require('body-parser');
 const cors = require('cors');
+let jwt = require('jsonwebtoken');
+
+let { Order } = require('./mongodb/order');
+let { Payment } = require('./mongodb/payment');
+let { User } = require('./mongodb/user');
 
 const app = express();
 const port = process.env.PORT || 3000;
 
-let profiles = JSON.parse(fs.readFileSync('profiles.JSON'));
-let payments = JSON.parse(fs.readFileSync('payments.json'));
-let orders = JSON.parse(fs.readFileSync('orders.json'));
 let logins = [];
-let jsonParser = bodyParser.json();
 
+let jsonParser = bodyParser.json();
 app.use(jsonParser);
 app.use(cors());
-app.use(logger)
+app.use(logger);
 
 //ORDERS
 app.route('/orders')
-    .get((req, res) => {
-        res.json(orders);
-    })
-
-app.route('/orders/new')
-    .post((req, res) => {
-        let body = req.body;
-        body.id = orders.length + 1;
-
-        if (body.summary && body.amount > 0 && body.client && body.provider && body.status && body.orderDetails) {
-            orders.push(body);
-            fs.writeFileSync('orders.json', JSON.stringify(orders));
-            res.status(201).send(body);
-            return;
-        }
-
-        res.status(400).send({
-            error: "Missing body data"
+    .get(auth, (req, res) => {
+        Order.find({}, (err, docs) => {
+            if (err) {
+                console.log(err);
+                res.status(400).send();
+            } else {
+                res.json(docs);
+            }
         })
-
+    })
+    .post(auth, (req, res) => {
+        let body = req.body;
+        Order.countDocuments({})
+            .then(number => {
+                body.id = number + 1;
+                let anyOrder = Order(body);
+                anyOrder.save()
+                    .then((doc) => res.json(doc))
+                    .catch((err) => {
+                        console.log(err);
+                        res.status(400).send();
+                    });
+            });
     })
 
 app.route('/orders/:id')
-    .get((req, res) => {
+    .get(auth, (req, res) => {
         let id = req.params.id;
-        let order = orders.find(ord => ord.id == id);
-
-        if (order) {
-            res.json(order);
-            return;
-        }
-
-        res.json({
-            error: "Non-existent"
-        });
+        Order.findOne({ 'id': id }, (err, docs) => {
+            if (err) {
+                console.log(err);
+                res.status(404).send();
+            } else {
+                res.json(docs);
+            }
+        })
     })
 
 app.route('/orders/:id/payment')
-    .post((req, res) => {
+    .post(auth, (req, res) => {
         let body = req.body;
-        let orderPayment = orders.find(ord => ord.id == body.id);
+        let orderID = req.params.id;
 
-        if (body.paymentForm && orderPayment) {
-            let newPayment = {
-                "id": orderPayment.id,
-                "amount": orderPayment.amount,
-                "provider": orderPayment.provider,
-                "status": "paid",
-                "transactionId": new Date().getTime(),
-                "paymentForm": body.paymentForm
+        Payment.find({}, (err, docs) => {
+            if (err) {
+                res.status(400).send();
+            } else {
+                length = docs.length;
             }
-            payments.push(newPayment);
-            fs.writeFileSync('payments.json', JSON.stringify(payments));
-            res.status(201).send(body);
-            return;
-        }
-
-        res.status(400).send({
-            error: "Missing body data"
         })
 
+        Payment.countDocuments({})
+            .then(number => {
+                body.id = number + 1;
+                body.order = orderID;
+                let anyPayment = Payment(body);
+
+                anyPayment.save()
+                    .then((doc) => res.json(doc))
+                    .catch((err) => {
+                        console.log(err);
+                        res.status(400).send();
+                    });
+            });
     })
 
 
 //PAYMENTS
 app.route('/payments')
-    .get((req, res) => {
-        res.json(payments);
+    .get(auth, (req, res) => {
+        Payment.find({}, (err, docs) => {
+            if (err) {
+                res.status(400).send();
+            } else {
+                length = docs.length;
+            }
+        })
     })
 
 app.route('/payments/:id')
-    .get((req, res) => {
+    .get(auth, (req, res) => {
         let id = req.params.id;
-        let payment = payments.find(paym => paym.id == id);
-
-        if (payment) {
-            res.json(payment);
-            return;
-        }
-
-        res.json({
-            error: "Non-existent"
-        });
+        Payment.findOne({ 'id': id }, (err, docs) => {
+            if (err) {
+                console.log(err);
+                res.status(404).send();
+            } else {
+                res.json(docs);
+            }
+        })
     })
 
 //PROFILE
 app.route('/profile')
-    .get((req, res) => {
+    .get(auth, (req, res) => {
+        let user = req.get('x-user');
         res.json(profile);
+        User.findOne({ 'email': user }, (err, docs) => {
+            if (err) {
+                console.log(err);
+                res.status(404).send();
+            } else {
+                res.json(docs);
+            }
+        })
     })
 
 app.route('/profile/edit')
@@ -156,32 +175,24 @@ app.route('/profile/cards')
 app.route('/login')
     .post((req, res) => {
         let body = req.body;
-
         if (body.username && body.password) {
-            let profile = profiles.find(prof => prof.username === body.username);
-            if (profile && profile.password === body.password) {
-                var d = new Date();
-                let token = {
-                    token: Math.random().toString(36),
-                    expiration: d,
-                    usuario: body.username
-                };
-                logins.push(token);
-                res.header("x-auth", token.token);
-                res.status(200).send({
-                    usuario: body.username
-                });
-                return;
-            }
-            res.status(401).send({
-                error: "Failed"
-            })
-            return;
-        }
 
-        res.status(400).send({
-            error: "Missing body data"
-        })
+            User.findOne({ 'email': body.username }, (err, user) => {
+                if (err) {
+                    console.log(err);
+                    res.status(404).send();
+                } else {
+                    if (user.password === body.password) {
+                        let token = user.generateToken();
+                        res.header("x-auth", token);
+                        res.status(200).send({
+                            usuario: body.username
+                        });
+                    }
+                }
+                res.status(401).send();
+            })
+        }
     })
 
 //REGISTER
@@ -207,21 +218,6 @@ app.route('/register')
 
 app.listen(port, () => console.log(`Example app listening on port http://127.0.0.1:${port}!`))
 
-function updateProducto(id, producto) {
-    let pos = productos.findIndex(product => product.id == id);
-
-    productos[pos].nombre = (producto.nombre) ? producto.nombre : productos[pos].nombre;
-    productos[pos].marca = (producto.marca) ? producto.marca : productos[pos].marca;
-    productos[pos].precio = (producto.precio) ? producto.precio : productos[pos].precio;
-    productos[pos].descripcion = (producto.descripcion) ? producto.descripcion : productos[pos].descripcion;
-    productos[pos].existencia = (producto.existencia) ? producto.existencia : productos[pos].existencia;
-
-    Object.assign(productos[pos], producto);
-    fs.writeFileSync('productos.json', JSON.stringify(productos));
-    return true;
-
-}
-
 function updateProfile(id, profile) {
     let pos = profiles.findIndex(prof => prof.id == id);
 
@@ -246,37 +242,16 @@ function deleteProfileCards(id, idCard) {
 }
 
 function auth(req, res, next) {
-    let tokenAuth = req.get('x-auth');
-    let user = req.get('x-user');
+    let token = req.get('Authorization').split(" ").pop();
 
-    let login = logins.find(login => login.token == tokenAuth && login.user == user);
-
-    if (login) {
-        var tokenDate = new Date(login.expiration)
-        var currentDate = new Date();
-
-        let timeDiff = Math.abs(currentDate.getTime() - tokenDate.getTime());
-        let difference = Math.ceil(timeDiff / (1000 * 60));
-
-        if (difference < 5) {
-            next();
-        } else {
-            var index = logins.indexOf(login);
-
-            if (index > -1) {
-                logins.splice(index, 1);
-            }
+    jwt.verify(token, 'claveSecreta', (err, decoded) => {
+        if(err) {
             res.status(401).send({
                 error: "Unauthorized"
             });
-            return;
         }
-    } else {
-        res.status(401).send({
-            error: "Unauthorized"
-        });
-        return;
-    }
+        next();
+    });
 }
 
 function logger(req, res, next) {

@@ -2,37 +2,32 @@
   "id": 1,
   "firstName": "Luis Alberto",
   "lastName": "Beltrán Pérez",
-  "username": "luisbeltranfw@gmail.com",
-  "password": "javiermeama",
-  "gender": "male",
-  "city": "México",
+  "email": "luisbeltranfw@gmail.com",
+  "password": "12345678",
   "cards": [{
     "number": "4111111111111111",
-    "cvc": 373,
     "month": 2,
     "year": 2023
-  }]
+  }],
+  "acceso": "admin"
 }, {
   "id": 2,
   "firstName": "Javier",
   "lastName": "Torres Lopez",
-  "username": "javiertorres@gmail.com",
-  "password": "luisestonto",
-  "gender": "male",
-  "city": "México",
+  "email": "is700845@iteso.mx",
+  "password": "12345678",
   "cards": [{
     "number": "4111111111111111",
-    "cvc": 373,
     "month": 2,
     "year": 2023
-  }]
+  }],
+  "acceso": "admin"
 }, {
+  "id": 2,
   "firstName": "Isaac",
   "lastName": "Cabrera Cortés",
-  "username": "isaac_cabrera@gmail.com",
-  "password": "soyuncrack",
-  "gender": "male",
-  "city": "México",
-  "id": 3,
-  "cards": []
+  "email": "isaac_cabrera@gmail.com",
+  "password": "12345678",
+  "cards": [],
+  "acceso": "normal"
 }]
