@@ -184,9 +184,9 @@ app.route('/login')
                 } else {
                     if (user.password === body.password) {
                         let token = user.generateToken();
-                        res.header("x-auth", token);
                         res.status(200).send({
-                            usuario: body.username
+                            usuario: body.username,
+			    token: token
                         });
                     }
                 }
