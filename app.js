@@ -14,7 +14,6 @@ const app = express();
 const port = process.env.PORT || 3000;
 
 let logins = [];
-
 let jsonParser = bodyParser.json();
 app.use(jsonParser);
 app.use(cors());
@@ -199,18 +198,18 @@ app.route('/login')
 app.route('/register')
     .post((req, res) => {
         let body = req.body;
-        body.id = profiles.length + 1;
-        body.cards = [];
-
-        if (body.firstName && body.lastName && body.city && body.username && body.password && body.gender) {
-            profiles.push(body);
-            fs.writeFileSync('profiles.json', JSON.stringify(profiles));
-            res.status(200).send("Success!");
-        } else {
-            res.status(400).send({
-                error: "Missing body data"
-            })
-        }
+        User.countDocuments({})
+            .then(number => {
+                body.id = number + 1;
+                body.acceso = "normal";
+                let anyUser = User(body);
+                anyUser.save()
+                    .then((doc) => res.json(doc))
+                    .catch((err) => {
+                        console.log(err);
+                        res.status(400).send();
+                    });
+            });
     })
 
 
