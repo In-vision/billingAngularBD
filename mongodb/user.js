@@ -25,7 +25,7 @@ let userScheme = mongoose.Schema({
         required: true,
         min: 0,
     },
-    username: {
+    email: {
         type: String, required: true, trim: true, minlength: 4, unique: true
     },
     password: {
