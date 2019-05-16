@@ -117,7 +117,7 @@ app.route('/payments/:id')
 app.route('/profile')
     .get(auth, (req, res) => {
         let user = req.get('x-user');
-        res.json(profile);
+        
         User.findOne({ 'email': user }, (err, docs) => {
             if (err) {
                 console.log(err);
@@ -183,9 +183,9 @@ app.route('/login')
                 } else {
                     if (user.password === body.password) {
                         let token = user.generateToken();
-                        res.header("x-auth", token);
                         res.status(200).send({
-                            usuario: body.username
+                            usuario: body.username,
+			    token: token
                         });
                     }
                 }
@@ -248,6 +248,7 @@ function auth(req, res, next) {
             res.status(401).send({
                 error: "Unauthorized"
             });
+	    return;
         }
         next();
     });
