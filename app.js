@@ -144,7 +144,7 @@ app.route('/profile/edit')
     .patch(auth, (req, res) => {
         let id = req.body.id;
         let body = req.body;
-        User.findById({'id': id}, function (err, user) {
+        User.findOne({'id': id}, function (err, user) {
             console.log(id);
             if (err) {
                 res.status(404).send();
@@ -155,9 +155,7 @@ app.route('/profile/edit')
                 user.firstName = firstName;
                 user.lastName = lastName;
 
-                user.save(function (err) {
-                    res.redirect('/profile');
-                })
+                user.save();
             }
         })
     })
