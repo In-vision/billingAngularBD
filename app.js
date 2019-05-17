@@ -6,9 +6,15 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 let jwt = require('jsonwebtoken');
 
-let { Order } = require('./mongodb/order');
-let { Payment } = require('./mongodb/payment');
-let { User } = require('./mongodb/user');
+let {
+    Order
+} = require('./mongodb/order');
+let {
+    Payment
+} = require('./mongodb/payment');
+let {
+    User
+} = require('./mongodb/user');
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -49,7 +55,9 @@ app.route('/orders')
 app.route('/orders/:id')
     .get(auth, (req, res) => {
         let id = req.params.id;
-        Order.findOne({ 'id': id }, (err, docs) => {
+        Order.findOne({
+            'id': id
+        }, (err, docs) => {
             if (err) {
                 console.log(err);
                 res.status(404).send();
@@ -103,7 +111,9 @@ app.route('/payments')
 app.route('/payments/:id')
     .get(auth, (req, res) => {
         let id = req.params.id;
-        Payment.findOne({ 'id': id }, (err, docs) => {
+        Payment.findOne({
+            'id': id
+        }, (err, docs) => {
             if (err) {
                 console.log(err);
                 res.status(404).send();
@@ -117,8 +127,10 @@ app.route('/payments/:id')
 app.route('/profile')
     .get(auth, (req, res) => {
         let user = req.get('x-user');
-        
-        User.findOne({ 'email': user }, (err, docs) => {
+
+        User.findOne({
+            'email': user
+        }, (err, docs) => {
             if (err) {
                 console.log(err);
                 res.status(404).send();
@@ -130,28 +142,27 @@ app.route('/profile')
 
 app.route('/profile/edit')
     .patch(auth, (req, res) => {
-        User.findById(req.user.id, function (err, user) {
-            
-            const firstName = req.body.firstName.trim();
-            const lastName = req.body.lastName.trim();    
-            
-            user.firstName = firstName;
-            user.lastName = lastName;
+        let id = req.body.id;
+        let body = req.body;
+        User.findById({'id': id}, function (err, user) {
+            console.log(id);
+            if (err) {
+                res.status(404).send();
+            } else {
+                const firstName = body.firstName.trim();
+                const lastName = body.lastName.trim();
 
-            user.save(function(err){
-                res.redirect('/profile');
-            })
+                user.firstName = firstName;
+                user.lastName = lastName;
+
+                user.save(function (err) {
+                    res.redirect('/profile');
+                })
+            }
         })
     })
 
 app.route('/profile/cards')
-    .patch(auth, (req, res) => {
-        User.findById(req.user.id, function(err, user) {
-            if(!user){
-                req.flash('error', 'No account found');
-            }
-        })
-    })
     .post(auth, (req, res) => {
         let body = req.body;
 
@@ -175,7 +186,9 @@ app.route('/login')
         let body = req.body;
         if (body.username && body.password) {
 
-            User.findOne({ 'email': body.username }, (err, user) => {
+            User.findOne({
+                'email': body.username
+            }, (err, user) => {
                 if (err) {
                     console.log(err);
                     res.status(404).send();
@@ -184,7 +197,7 @@ app.route('/login')
                         let token = user.generateToken();
                         res.status(200).send({
                             usuario: body.username,
-			    token: token
+                            token: token
                         });
                     }
                 }
@@ -243,11 +256,11 @@ function auth(req, res, next) {
     let token = req.get('Authorization').split(" ").pop();
 
     jwt.verify(token, 'claveSecreta', (err, decoded) => {
-        if(err) {
+        if (err) {
             res.status(401).send({
                 error: "Unauthorized"
             });
-	    return;
+            return;
         }
         next();
     });
