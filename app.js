@@ -130,32 +130,27 @@ app.route('/profile')
 
 app.route('/profile/edit')
     .patch(auth, (req, res) => {
-        User.findOne({
-            'email': body.email
-        }, (err, user) => {
-            if (err) {
-                console.log(err);
-                res.status(404).send();
-            } else {
-                user.firstName = body.firstName;
-                user.lastName = body.lastName;
-                user.save();
-            }
-            res.status(401).send();
+        User.findById(req.user.id, function (err, user) {
+            
+            const firstName = req.body.firstName.trim();
+            const lastName = req.body.lastName.trim();    
+            
+            user.firstName = firstName;
+            user.lastName = lastName;
+
+            user.save(function(err){
+                res.redirect('/profile');
+            })
         })
     })
 
 app.route('/profile/cards')
     .patch(auth, (req, res) => {
-        let id = req.params.id;
-        let body = req.body;
-        if (deleteProfileCards(id, body)) {
-            res.send();
-        } else {
-            res.status(400).send({
-                error: "Incorrect id or missing data"
-            })
-        }
+        User.findById(req.user.id, function(err, user) {
+            if(!user){
+                req.flash('error', 'No account found');
+            }
+        })
     })
     .post(auth, (req, res) => {
         let body = req.body;
