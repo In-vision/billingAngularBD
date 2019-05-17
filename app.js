@@ -130,15 +130,19 @@ app.route('/profile')
 
 app.route('/profile/edit')
     .patch(auth, (req, res) => {
-        let id = req.params.id;
-        let body = req.body;
-        if (updateProfile(id, body)) {
-            res.send();
-        } else {
-            res.status(400).send({
-                error: "Incorrect id or missing data"
-            })
-        }
+        User.findOne({
+            'email': body.email
+        }, (err, user) => {
+            if (err) {
+                console.log(err);
+                res.status(404).send();
+            } else {
+                user.firstName = body.firstName;
+                user.lastName = body.lastName;
+                await user.save();
+            }
+            res.status(401).send();
+        })
     })
 
 app.route('/profile/cards')
