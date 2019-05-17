@@ -139,7 +139,7 @@ app.route('/profile/edit')
             } else {
                 user.firstName = body.firstName;
                 user.lastName = body.lastName;
-                await user.save();
+                user.save();
             }
             res.status(401).send();
         })
