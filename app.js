@@ -144,39 +144,49 @@ app.route('/profile/edit')
     .patch(auth, (req, res) => {
         let id = req.body.id;
         let body = req.body;
-        User.findOne({'id': id}, function (err, user) {
+        console.log("bodyProfile: " + body);
+        User.findOne({
+            'id': id
+        }, function (err, user) {
             console.log(id);
             if (err) {
                 res.status(404).send();
             } else {
                 const firstName = body.firstName.trim();
                 const lastName = body.lastName.trim();
+                const cards = body.cards;
 
                 user.firstName = firstName;
                 user.lastName = lastName;
+                user.cards = cards;
 
                 user.save(function (err) {
                     res.redirect('/profile');
                 })
+                res.json(user);
             }
         })
     })
 
 app.route('/profile/cards')
     .post(auth, (req, res) => {
+        console.log("CC Number: " + req.body.cNumber);
         let body = req.body;
-
-        if (body.number && body.cvc && body.month > 0 && body.month < 13 && body.year > 2019 && body.year < 2030) {
-            orders.push(body);
-            fs.writeFileSync('orders.json', JSON.stringify(orders));
-            res.status(201).send(body);
-            return;
-        }
-
-        res.status(400).send({
-            error: "Missing body data"
+        console.log("body: " + body);
+        let emailUser = body.userEmail;
+        User.findOne({
+            'email': emailUser
+        }, function (err, user) {
+            console.log(body);
+            if (err) {
+                res.status(404).send();
+            } else {
+                user.cards.push(body);
+                user.save(function (err) {
+                    res.redirect('/profile');
+                })
+            }
         })
-
     })
 
 

@@ -2,7 +2,11 @@ let { mongoose } = require('./mongodb-connect');
 let jwt = require('jsonwebtoken');
 
 var tdcSchema = mongoose.Schema({
-    number: {
+    userEmail: {
+        type: String,
+        required: true
+    },
+    cNumber: {
         type: String,
         required: true,
     },
@@ -16,6 +20,11 @@ var tdcSchema = mongoose.Schema({
         min: 0,
         required: true,
     },
+    cvc: {
+        type: Number,
+        min: 0,
+        required: true
+    }
 });
 
 
