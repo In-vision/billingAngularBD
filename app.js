@@ -155,7 +155,9 @@ app.route('/profile/edit')
                 user.firstName = firstName;
                 user.lastName = lastName;
 
-                user.save();
+                user.save(function (err) {
+                    res.redirect('/profile');
+                })
             }
         })
     })
