@@ -206,8 +206,9 @@ app.route('/login')
                     if (user.password === body.password) {
                         let token = user.generateToken();
                         res.status(200).send({
-                            usuario: body.username,
-                            token: token
+                            usuario: user.email,
+                            token: token,
+                            acceso: user.acceso
                         });
                     }
                 }
